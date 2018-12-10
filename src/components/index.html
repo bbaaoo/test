@@ -1,0 +1,92 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">
+    <title>逆地理编码(经纬度->地址)</title>
+    <link rel="stylesheet" href="https://a.amap.com/jsapi_demos/static/demo-center/css/demo-center.css"/>
+    <style>
+        html,body,#container{
+            height:100%;
+            width:100%;
+        }
+        .btn{
+            width:10rem;
+            margin-left:6.8rem;   
+        }
+    </style>
+</head>
+<body>
+<div id="container"></div>
+<script type="text/javascript" src="https://webapi.amap.com/maps?v=1.4.11&key=635b474768deb70ad130b81888519155&plugin=AMap.Geocoder"></script>
+<script src="http://a.amap.com/Loca/static/mock/districts.js"></script>
+<script src="//webapi.amap.com/loca?v=1.2.0&key=635b474768deb70ad130b81888519155"></script>
+<script type="text/javascript">
+    var amap = new AMap.Map("container", {
+        resizeEnable: true,
+        zoom: 4
+    });
+    /* for (const {center, name} of Object.values(districts)) {
+      regeoCode(center)
+    } */
+    var geocoder;
+    function regeoCode(lnglat) {
+        if(!geocoder){
+            geocoder = new AMap.Geocoder({
+                city: "010", //城市设为北京，默认：“全国”
+                radius: 1000 //范围，默认：500
+            });
+        }
+        // var lnglat  = document.getElementById('lnglat').value.split(',');
+        geocoder.getAddress(lnglat, function(status, result) {
+          if(JSON.stringify(result) != "{}"){
+            for (const {center, name} of Object.values(districts)) {
+              if(name == result.regeocode.addressComponent.province){
+                if(amap.getZoom() == 4){
+                  amap.setZoomAndCenter(6, center.split(','))
+                }else{
+                  amap.setZoomAndCenter(4, [109, 38])
+                }
+              }
+            }
+          }
+        });
+    }
+    
+    amap.on('click',function(e){
+      regeoCode(e.lnglat);
+    })
+
+    // 传入 AMap.Map 实例
+    var map = Loca.create(amap);
+    var layer = Loca.visualLayer({
+        container: map,
+        // 指定数据类型
+        type: 'point',
+        // 展示形状
+        shape: 'circle'
+    });
+    layer.setData(districts, {
+        // 指定经纬度所在字段
+        lnglat: 'center'
+    });
+    layer.setOptions({
+        style: {
+            // 圆形半径
+            radius: 5,
+            // 填充颜色
+            color: '#f3ad6a',
+            // 描边颜色
+            borderColor: '#5a6aff',
+            // 描边宽度，单位像素
+            borderWidth: 1,
+            // 透明度
+            opacity: 0.9
+        }
+    });
+    layer.render();
+
+</script>
+</body>
+</html>
