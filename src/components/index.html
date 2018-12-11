@@ -25,6 +25,7 @@
     <script src="https://webapi.amap.com/loca?v=1.2.0&key=635b474768deb70ad130b81888519155"></script>
     <!-- UI组件库 1.0 -->
     <script src="https://webapi.amap.com/ui/1.0/main.js?v=1.0.11"></script>
+    <script src="https://a.amap.com/jsapi_demos/static/resource/capitals.js"></script>
     <script type="text/javascript">
     //创建地图
     var amap = new AMap.Map('container', {
@@ -37,6 +38,27 @@
         showLabel: false, //不显示地图文字标记
         features: ['bg','road']
     });
+    //添加各城市坐标
+    for(var i=0;i<capitals.length;i+=1){
+        var center = capitals[i].center;
+        var circleMarker = new AMap.CircleMarker({
+        center:center,
+        radius: 4+Math.random()*2,//3D视图下，CircleMarker半径不要超过64px
+        strokeColor:'white',
+        strokeWeight:2,
+        strokeOpacity:0.5,
+        fillColor:'rgba(0,0,255,1)',
+        fillOpacity:0.5,
+        zIndex:10,
+        //   bubble:false,
+        cursor:'pointer',
+        clickable: true,
+        })
+        circleMarker.on('mouseover', function (e) {
+            console.log(e.target)
+        })
+        circleMarker.setMap(amap)
+    }
 
     //just some colors
     var colors = [
@@ -121,7 +143,6 @@
             console.log('区域外点击');
         });
 
-
         function renderAreaNode(areaNode) {
 
             //绘制子区域
@@ -173,8 +194,8 @@
             amap.setFitView(districtExplorer.getAllFeaturePolygons());
         });
     });
-
-    var districts = [
+    
+    /*var districts = [
         { 'name': '北京市', 'center': '116.407394,39.904211' },
         { 'name': '天津市', 'center': '117.200983,39.084158' },
         { 'name': '河北省', 'center': '114.530235,38.037433' },
@@ -212,7 +233,7 @@
     ];
     
     // 传入 AMap.Map 实例
-    var map = Loca.create(amap);
+     var map = Loca.create(amap);
     var layer = Loca.visualLayer({
         container: map,
         // 指定数据类型
@@ -220,7 +241,7 @@
         // 展示形状
         shape: 'circle'
     });
-    layer.setData(districts, {
+    layer.setData(capitals, {
         // 指定经纬度所在字段
         lnglat: 'center'
     });
@@ -242,7 +263,7 @@
         console.log(111)
     })
     // 执行绘制
-    layer.render();
+    layer.render(); */
     </script>
 </body>
 
