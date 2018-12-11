@@ -1,63 +1,216 @@
+<!-- 重点： on, setAreaNodesForLocating -->
 <!doctype html>
-<html>
+<html lang="zh-CN">
+
 <head>
+    <!-- 原始地址：//webapi.amap.com/ui/1.0/ui/geo/DistrictExplorer/examples/events.html -->
+    <base href="//webapi.amap.com/ui/1.0/ui/geo/DistrictExplorer/examples/" />
     <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">
-    <title>逆地理编码(经纬度->地址)</title>
-    <link rel="stylesheet" href="https://a.amap.com/jsapi_demos/static/demo-center/css/demo-center.css"/>
+    <title>事件处理</title>
     <style>
-        html,body,#container{
-            height:100%;
-            width:100%;
-        }
-        .btn{
-            width:10rem;
-            margin-left:6.8rem;   
-        }
+    html,
+    body,
+    #container {
+        width: 100%;
+        height: 100%;
+        margin: 0px;
+    }
     </style>
 </head>
+
 <body>
-<div id="container"></div>
-<script type="text/javascript" src="https://webapi.amap.com/maps?v=1.4.11&key=635b474768deb70ad130b81888519155&plugin=AMap.Geocoder"></script>
-<script src="http://a.amap.com/Loca/static/mock/districts.js"></script>
-<script src="//webapi.amap.com/loca?v=1.2.0&key=635b474768deb70ad130b81888519155"></script>
-<script type="text/javascript">
-    var amap = new AMap.Map("container", {
-        resizeEnable: true,
-        zoom: 4
+    <div id="container"></div>
+    <script type="text/javascript" src='https://webapi.amap.com/maps?v=1.4.11&key=635b474768deb70ad130b81888519155'></script>
+    <script src="https://webapi.amap.com/loca?v=1.2.0&key=635b474768deb70ad130b81888519155"></script>
+    <!-- UI组件库 1.0 -->
+    <script src="https://webapi.amap.com/ui/1.0/main.js?v=1.0.11"></script>
+    <script type="text/javascript">
+    //创建地图
+    var amap = new AMap.Map('container', {
+        showIndoorMap: false, // 是否在有矢量底图的时候自动展示室内地图，PC默认true,移动端默认false
+        resizeEnable: true, //是否监控地图容器尺寸变化
+        zoomEnable: true, //地图是否可缩放，默认值为true
+        doubleClickZoom: false, // 地图是否可通过双击鼠标放大地图，默认为true
+        zoom: 4, //初始化地图层级
+        center: [105.4976, 38.1697], //初始化地图中心点
+        showLabel: false, //不显示地图文字标记
+        features: ['bg','road']
     });
-    /* for (const {center, name} of Object.values(districts)) {
-      regeoCode(center)
-    } */
-    var geocoder;
-    function regeoCode(lnglat) {
-        if(!geocoder){
-            geocoder = new AMap.Geocoder({
-                city: "010", //城市设为北京，默认：“全国”
-                radius: 1000 //范围，默认：500
+
+    //just some colors
+    var colors = [
+        "#3366cc", "#dc3912", "#ff9900", "#109618", "#990099", "#0099c6", "#dd4477", "#66aa00",
+        "#b82e2e", "#316395", "#994499", "#22aa99", "#aaaa11", "#6633cc", "#e67300", "#8b0707",
+        "#651067", "#329262", "#5574a6", "#3b3eac"
+    ];
+
+    AMapUI.loadUI(['geo/DistrictExplorer'], function(DistrictExplorer) {
+
+        //创建一个实例
+        var districtExplorer = new DistrictExplorer({
+            eventSupport: true,
+            map: amap
+        });
+
+        //创建一个辅助Marker，提示鼠标内容
+        /* var tipMarker = new AMap.Marker({
+            //启用冒泡，否则click事件会被marker自己拦截
+            bubble: true
+        }); */
+
+        //监听feature的hover事件
+        districtExplorer.on('featureMouseout featureMouseover', function(e, feature) {
+            var isHover = e.type === 'featureMouseover';
+            
+            /* if (!isHover) {
+                tipMarker.setMap(null);
+                return;
+            } */
+
+            /* tipMarker.setMap(amap);
+
+            tipMarker.setPosition(e.originalEvent.lnglat);
+
+            tipMarker.setLabel({
+                offset: new AMap.Pixel(20, 20),
+                content: feature.properties.name
+            }); */
+
+        });
+
+        //监听鼠标在feature上滑动
+        districtExplorer.on('featureMousemove', function(e, feature) {
+            //更新提示位置
+            // tipMarker.setPosition(e.originalEvent.lnglat);
+        });
+        var polygons = []
+        //feature被点击
+        districtExplorer.on('featureClick', function(e, feature) {
+            if(amap.getZoom() == 4){
+                amap.remove(polygons)//清除上次结果
+                polygons = [];
+                var bounds = feature.geometry.coordinates;
+                if (bounds) {
+                    for (var i = 0, l = bounds.length; i < l; i++) {
+                        //生成行政区划polygon
+                        var polygon = new AMap.Polygon({
+                            path: bounds[i],
+                            fillOpacity: .8,
+                            fillColor: 'rgb(1,1,34)',
+                            strokeColor: 'white',
+                            strokeWeight: 2,
+                            // strokeOpacity:0,//透明
+                            // fillOpacity:0,//透明
+                            bubble:true//事件穿透到地图
+                        });
+                        polygons.push(polygon);
+                    }
+                }
+                amap.add(polygons)
+                amap.setFitView(polygons);//视口自适应
+            }else{
+                amap.remove(polygons)//清除上次结果
+                //更新地图视野
+                amap.setFitView(districtExplorer.getAllFeaturePolygons());
+            }
+        });
+
+        //外部区域被点击
+        districtExplorer.on('outsideClick', function(e) {
+            console.log('区域外点击');
+        });
+
+
+        function renderAreaNode(areaNode) {
+
+            //绘制子区域
+            districtExplorer.renderSubFeatures(areaNode, function(feature, i) {
+
+                var fillColor = colors[i % colors.length];
+                var strokeColor = colors[colors.length - 1 - i % colors.length];
+
+                return {
+                    cursor: 'default',
+                    bubble: true,
+                    strokeColor: strokeColor, //线颜色
+                    strokeOpacity: 1, //线透明度
+                    strokeWeight: 1, //线宽
+                    fillColor: fillColor,//填充色
+                    fillOpacity: 0.35, //填充透明度
+                };
+            }); 
+
+            //绘制父区域
+            districtExplorer.renderParentFeature(areaNode, {
+                cursor: 'default',
+                bubble: true,
+                strokeColor: 'black', //线颜色
+                strokeOpacity: 1, //线透明度
+                strokeWeight: 1, //线宽
+                fillColor: 'gray', //填充色
+                fillOpacity: 0.2, //填充透明度
             });
         }
-        // var lnglat  = document.getElementById('lnglat').value.split(',');
-        geocoder.getAddress(lnglat, function(status, result) {
-          if(JSON.stringify(result) != "{}"){
-            for (const {center, name} of Object.values(districts)) {
-              if(name == result.regeocode.addressComponent.province){
-                if(amap.getZoom() == 4){
-                  amap.setZoomAndCenter(6, center.split(','))
-                }else{
-                  amap.setZoomAndCenter(4, [109, 38])
-                }
-              }
-            }
-          }
-        });
-    }
-    
-    amap.on('click',function(e){
-      regeoCode(e.lnglat);
-    })
 
+        var adcodes = [
+            100000
+        ];
+
+        districtExplorer.loadMultiAreaNodes(adcodes, function(error, areaNodes) {
+
+            //设置定位节点，支持鼠标位置识别
+            //注意节点的顺序，前面的高优先级
+            districtExplorer.setAreaNodesForLocating(areaNodes);
+
+            //清除已有的绘制内容
+            districtExplorer.clearFeaturePolygons();
+
+
+            renderAreaNode(areaNodes[0]);
+
+            //更新地图视野
+            amap.setFitView(districtExplorer.getAllFeaturePolygons());
+        });
+    });
+
+    var districts = [
+        { 'name': '北京市', 'center': '116.407394,39.904211' },
+        { 'name': '天津市', 'center': '117.200983,39.084158' },
+        { 'name': '河北省', 'center': '114.530235,38.037433' },
+        { 'name': '山西省', 'center': '112.562678,37.873499' },
+        { 'name': '内蒙古自治区', 'center': '111.76629,40.81739' },
+        { 'name': '辽宁省', 'center': '123.431382,41.836175' },
+        { 'name': '吉林省', 'center': '125.32568,43.897016' },
+        { 'name': '黑龙江省', 'center': '126.661665,45.742366' },
+        { 'name': '上海市', 'center': '121.473662,31.230372' },
+        { 'name': '江苏省', 'center': '118.762765,32.060875' },
+        { 'name': '浙江省', 'center': '120.152585,30.266597' },
+        { 'name': '安徽省', 'center': '117.329949,31.733806' },
+        { 'name': '福建省', 'center': '119.295143,26.100779' },
+        { 'name': '江西省', 'center': '115.81635,28.63666' },
+        { 'name': '山东省', 'center': '117.019915,36.671156' },
+        { 'name': '河南省', 'center': '113.753394,34.765869' },
+        { 'name': '湖北省', 'center': '114.341745,30.546557' },
+        { 'name': '湖南省', 'center': '112.9836,28.112743' },
+        { 'name': '广东省', 'center': '113.26641,23.132324' },
+        { 'name': '广西壮族自治区', 'center': '108.327546,22.815478' },
+        { 'name': '海南省', 'center': '110.349228,20.017377' },
+        { 'name': '重庆市', 'center': '106.551643,29.562849' },
+        { 'name': '四川省', 'center': '104.075809,30.651239' },
+        { 'name': '贵州省', 'center': '106.70546,26.600055' },
+        { 'name': '云南省', 'center': '102.710002,25.045806' },
+        { 'name': '西藏自治区', 'center': '91.117525,29.647535' },
+        { 'name': '陕西省', 'center': '108.954347,34.265502' },
+        { 'name': '甘肃省', 'center': '103.826447,36.05956' },
+        { 'name': '青海省', 'center': '101.780268,36.620939' },
+        { 'name': '宁夏回族自治区', 'center': '106.259126,38.472641' },
+        { 'name': '新疆维吾尔自治区', 'center': '87.627704,43.793026' },
+        { 'name': '台湾省', 'center': '121.509062,25.044332' },
+        { 'name': '香港特别行政区', 'center': '114.171203,22.277468' },
+        { 'name': '澳门特别行政区', 'center': '113.543028,22.186835' }
+    ];
+    
     // 传入 AMap.Map 实例
     var map = Loca.create(amap);
     var layer = Loca.visualLayer({
@@ -85,8 +238,12 @@
             opacity: 0.9
         }
     });
+    layer.on('mouseover', function (e) {
+        console.log(111)
+    })
+    // 执行绘制
     layer.render();
-
-</script>
+    </script>
 </body>
+
 </html>
