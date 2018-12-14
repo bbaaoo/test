@@ -4,293 +4,387 @@
 
 <head>
     <!-- 原始地址：//webapi.amap.com/ui/1.0/ui/geo/DistrictExplorer/examples/events.html -->
-    <base href="https://webapi.amap.com/ui/1.0/ui/geo/DistrictExplorer/examples/" />
+    <!-- <base href="https://webapi.amap.com/ui/1.0/ui/geo/DistrictExplorer/examples/" /> -->
     <meta charset="utf-8">
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">
     <title>事件处理</title>
+    <script src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
     <style>
-    html,
-    body,
-    #container {
-        width: 900px;
-        height: 600px;
-        margin: 0px;
+    body{
+        margin: 0;
+        padding: 0;
+        background-color: black
+    }
+    .container {
+        width: 882px;
+        height: 592px;
+        margin: 20px;
+        padding: 3px;
+        background: url('../assets/8-bg.png') center no-repeat;
+    }
+    #map {
+        top: 1px;
+        width: 880px;
+        height: 590px;
+        margin: 0 auto;
+        border-radius: 5px;
     }
     .info {
         display: inline-block;
-        width: 100px;
+        width: 28px;
         font-size: 12px;
-        color: white
+        color: #1753f0;
+        transform: scale(.9)
+    }
+    .mapTip{
+        /* min-width: 115px; */
+        display: block;
+        height: 1em;
+        line-height: 1em;
+        font-size: 12px;
+        color: white;
+        text-align: center;
+        text-shadow:2px 2px 4px black;
+        /* -webkit-transform: translate(-50%, -50%);
+        -moz-transform: translate(-50%, -50%);
+        -ms-transform: translate(-50%, -50%);
+        -o-transform: translate(-50%, -50%); */
+    }
+    /*上升泡泡*/
+    .foamA {
+        display: b  lock !important;
+        animation: foamA 3.2s ease-out .4s 1;
+        -webkit-animation: foamA 3.2s ease-out .4s 1;
+        /* will-change: transform, opacity; */
+    }
+    @keyframes foamA {
+        0% {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        60% {
+            opacity: .8;
+        }
+        100% {
+            transform: translateY(-30px);
+            opacity: 0;
+        }
     }
     </style>
 </head>
 
 <body>
-    <div id="container"></div>
+    <div class="container">
+        <div id="map"></div>
+    </div>
     <script type="text/javascript" src='https://webapi.amap.com/maps?v=1.4.11&key=635b474768deb70ad130b81888519155'></script>
     <script src="https://webapi.amap.com/loca?v=1.2.0&key=635b474768deb70ad130b81888519155"></script>
     <!-- UI组件库 1.0 -->
     <script src="https://webapi.amap.com/ui/1.0/main.js?v=1.0.11"></script>
     <script src="https://a.amap.com/jsapi_demos/static/resource/capitals.js"></script>
     <script type="text/javascript">
-    //创建地图
-    var amap = new AMap.Map('container', {
-        mapStyle: "amap://styles/whitesmoke",
-        showIndoorMap: false, // 是否在有矢量底图的时候自动展示室内地图，PC默认true,移动端默认false
-        resizeEnable: true, //是否监控地图容器尺寸变化
-        zoomEnable: true, //地图是否可缩放，默认值为true
-        dragEnable: false,//地图不可拖动
-        doubleClickZoom: false, // 地图是否可通过双击鼠标放大地图，默认为true
-        zoom: 4, //初始化地图层级
-        center: [105.4976, 38.1697], //初始化地图中心点
-        showLabel: false, //不显示地图文字标记
-        features: ['bg','road'],
-        defaultCursor: 'pointer'
-    });
-    //添加各城市坐标
-    for(var i=0;i<capitals.length;i+=1){
-        var center = capitals[i].center;
-        var circleMarker = new AMap.CircleMarker({
-            center:center,
-            radius: 4+Math.random()*3,//3D视图下，CircleMarker半径不要超过64px
-            strokeColor:'white',
-            strokeWeight:2,
-            strokeOpacity:0.5,
-            fillColor:'rgba(0,0,255,1)',
-            fillOpacity:0.5,
-            zIndex:9999,//层级设定，设为顶层，方便触发事件
-            bubble:true,
-            cursor:'pointer',
-            // clickable: true,
-            // content: '1111'+i
-        })
-        //添加城市名
-        /* var marker = new AMap.Marker({
-            position: center,
-            // 将 html 传给 content
-            // content: capitals[i].name,
-            content: "<span class='info'>"+capitals[i].name+"</span>",
-            // 以 icon 的 [center bottom] 为原点
-            offset: new AMap.Pixel(-25, -20),
-            bubble:true,
-        }); */
-        // 鼠标划过点标记显示的文字提示
-        // marker.setTitle('我是marker的title');
-        // 将 markers 添加到地图
-        // amap.add(marker);
-        // amap.remove(marker);//清除
 
-
-        /* markers.forEach(function(marker) {
-            new AMap.Marker({
-                map: map,
-                icon: marker.icon,
-                position: [marker.position[0], marker.position[1]],
-                offset: new AMap.Pixel(-13, -30)
-            });
-        }); */
-
-        circleMarker.on('mouseover', function (e) {
-            console.log(e)
-        })
-        circleMarker.setMap(amap)
-    }
-
-    //just some colors
-    var colors = [
-        "#3366cc", "#dc3912", "#ff9900", "#109618", "#990099", "#0099c6", "#dd4477", "#66aa00",
-        "#b82e2e", "#316395", "#994499", "#22aa99", "#aaaa11", "#6633cc", "#e67300", "#8b0707",
-        "#651067", "#329262", "#5574a6", "#3b3eac"
-    ];
-
-    AMapUI.loadUI(['geo/DistrictExplorer'], function(DistrictExplorer) {
-
-        //创建一个实例
-        var districtExplorer = new DistrictExplorer({
-            eventSupport: true,
-            map: amap
-        });
-
-        //鼠标滑过提示信息
-        var tipMarker = new AMap.Marker({
-            offset: new AMap.Pixel(-25, -20),
-            bubble:true,
-        });
-
-        //监听feature的hover事件
-        districtExplorer.on('featureMouseout featureMouseover', function(e, feature) {
-            var isHover = e.type === 'featureMouseover';
-            if (!isHover) {
-                amap.remove(tipMarker);
-                return;
+    function shuffle(arr) {//数组乱序
+        var length = arr.length,
+            shuffled = Array(length);
+        for (var index = 0, rand; index < length; index++) {
+            min = 0, max = index
+            if (max == null) {
+                max = min;
+                min = 0;
             }
-            amap.add(tipMarker);
-            //设定提示位置
-            tipMarker.setPosition(e.originalEvent.lnglat);
-            //设定内容
-            tipMarker.setContent("<span class='info'>"+feature.properties.name+"</span>")
-        });
-
-        //监听鼠标在feature上滑动
-        districtExplorer.on('featureMousemove', function(e, feature) {
-            //更新提示位置
-            tipMarker.setPosition(e.originalEvent.lnglat);
-        });
-        var polygons = []
-        //feature被点击
-        districtExplorer.on('featureClick', function(e, feature) {
-            if(amap.getZoom() == 4){
-                amap.remove(polygons)//清除上次结果
-                polygons = [];
-                var bounds = feature.geometry.coordinates;
-                if (bounds) {
-                    for (var i = 0, l = bounds.length; i < l; i++) {
-                        //生成行政区划polygon
-                        var polygon = new AMap.Polygon({
-                            path: bounds[i],
-                            fillOpacity: .8,
-                            fillColor: 'rgb(1,1,34)',
-                            strokeColor: 'white',
-                            strokeWeight: 2,
-                            // strokeOpacity:0,//透明
-                            // fillOpacity:0,//透明
-                            bubble:true//事件穿透到地图
-                        });
-                        polygons.push(polygon);
+            rand = min + Math.floor(Math.random() * (max - min + 1));
+            if (rand !== index) shuffled[index] = shuffled[rand];
+            shuffled[rand] = arr[index];
+        }
+        return shuffled;
+    }
+    $.ajax({
+        url: './obj.json',
+        type: 'get',
+        contentType:'JSON',
+        success: function (data) {
+            var arr = []
+            for (const [key,val] of Object.entries(data)) {
+                for(var i=0;i<capitals.length;i+=1){
+                    if(capitals[i].name.indexOf(key) == 0){
+                        val.center = capitals[i].center// 设置信息展示坐标
                     }
                 }
-                amap.add(polygons)
-                amap.setFitView(polygons);//视口自适应
-                if(feature.properties.name == '海南省'){
-                    amap.setZoomAndCenter(7,feature.properties.center)
+                for (const [k,v] of Object.entries(val)) {
+                    if(k != 'center'){
+                        var obj = {[key+"_"+k]: v, center: val.center}
+                        arr.push(obj)
+                    }
                 }
-            }else{
-                amap.remove(polygons)//清除上次结果
-                amap.setZoomAndCenter(4,[105.4976, 38.1697])
             }
+            fn()
+            arr = shuffle(arr)
+            arr1 = arr.slice(Math.ceil(Math.random() * 500), Math.ceil(Math.random() * arr.length))
+            console.log(arr1.length)
+            if(arr1.length>0){
+                generateDom(arr1)
+            }
+            setInterval(() => {
+                arr1 = arr.slice(Math.ceil(Math.random() * 500), 500 + Math.ceil(Math.random() * arr.length))
+                if(arr1.length>0){
+                    generateDom(arr1)
+                }
+            }, 1*60*1000);
+        }
+    })
+    function fn() {
+        /*  */
+        //创建地图
+        window.amap = new AMap.Map('map', {
+            mapStyle: "amap://styles/424564d3379c7809883149e377622204",
+            showIndoorMap: false, // 是否在有矢量底图的时候自动展示室内地图，PC默认true,移动端默认false
+            resizeEnable: true, //是否监控地图容器尺寸变化
+            zoomEnable: true, //地图是否可缩放，默认值为true
+            dragEnable: false,//地图不可拖动
+            doubleClickZoom: false, // 地图是否可通过双击鼠标放大地图，默认为true
+            zoom: 4, //初始化地图层级
+            center: [105.4976, 38.1697], //初始化地图中心点
+            showLabel: false, //不显示地图文字标记
+            features: ['bg','road'],
+            defaultCursor: 'pointer'
         });
+        //添加各城市坐标
+        for(var i=0;i<capitals.length;i+=1){
+            var center = capitals[i].center;
+            var circleMarker = new AMap.CircleMarker({
+                center:center,
+                radius: 3+Math.random()*2,//3D视图下，CircleMarker半径不要超过64px
+                strokeColor: '#ccc',
+                strokeWeight: .5,
+                strokeOpacity:0.5,
+                fillColor: '#51C468',
+                fillOpacity: .9,
+                zIndex:9999,//层级设定，设为顶层，方便触发事件
+                bubble:true,
+                cursor:'pointer',
+                // clickable: true,
+            })
+            //添加城市名
+            var marker = new AMap.Marker({
+                position: center,
+                // 将 html 传给 content
+                // content: capitals[i].name,
+                content: "<span class='info'>"+capitals[i].name.substr(0,2)+"</span>",
+                // 以 icon 的 [center bottom] 为原点
+                offset: new AMap.Pixel(6, -13),
+                bubble:true,
+            });
+            // 鼠标划过点标记显示的文字提示
+            // marker.setTitle('我是marker的title');
+            // 将 markers 添加到地图
+            amap.add(marker);
+            // amap.remove(marker);//清除
 
-        //外部区域被点击
-        districtExplorer.on('outsideClick', function(e) {
-            console.log('区域外点击');
-        });
 
-        function renderAreaNode(areaNode) {
+            /* markers.forEach(function(marker) {
+                new AMap.Marker({
+                    map: map,
+                    icon: marker.icon,
+                    position: [marker.position[0], marker.position[1]],
+                    offset: new AMap.Pixel(-13, -30)
+                });
+            }); */
 
-            //绘制子区域
-            districtExplorer.renderSubFeatures(areaNode, function(feature, i) {
+            circleMarker.on('mouseover', function (e) {
+                console.log(e)
+            })
+            circleMarker.setMap(amap)
+        }
+        
+        //just some colors
+        /* var colors = [
+            "#3366cc", "#dc3912", "#ff9900", "#109618", "#990099", "#0099c6", "#dd4477", "#66aa00",
+            "#b82e2e", "#316395", "#994499", "#22aa99", "#aaaa11", "#6633cc", "#e67300", "#8b0707",
+            "#651067", "#329262", "#5574a6", "#3b3eac"
+        ]; */
 
-                var fillColor = colors[i % colors.length];
-                var strokeColor = colors[colors.length - 1 - i % colors.length];
-                return {
+        AMapUI.loadUI(['geo/DistrictExplorer'], function(DistrictExplorer) {
+
+            //创建一个实例
+            var districtExplorer = new DistrictExplorer({
+                eventSupport: true,
+                map: amap
+            });
+
+            //鼠标滑过提示信息
+            var tipMarker = new AMap.Marker({
+                offset: new AMap.Pixel(-25, -20),
+                bubble:true,
+            });
+
+            //监听feature的hover事件
+            districtExplorer.on('featureMouseout featureMouseover', function(e, feature) {
+                var isHover = e.type === 'featureMouseover';
+                if (!isHover) {
+                    amap.remove(tipMarker);
+                }else{
+                    amap.add(tipMarker);
+                    //设定提示位置
+                    tipMarker.setPosition(e.originalEvent.lnglat);
+                    //设定内容
+                    tipMarker.setContent("<span class='info'>"+feature.properties.name+'---'+feature.properties.adcode+"</span>")
+                }
+                //设置鼠标悬停时区划的样式
+                var polys = districtExplorer.findFeaturePolygonsByAdcode(feature.properties.adcode);
+                for (var i = 0, len = polys.length; i < len; i++) {
+                    polys[i].setOptions({
+                        fillColor: '#1753f0',
+                        fillOpacity: isHover ? 1 : 0
+                    });
+                }
+            });
+
+            //监听鼠标在feature上滑动
+            districtExplorer.on('featureMousemove', function(e, feature) {
+                //更新提示位置
+                tipMarker.setPosition(e.originalEvent.lnglat);
+            });
+            var polygons = []
+            //feature被点击
+            districtExplorer.on('featureClick', function(e, feature) {
+                if(amap.getZoom() <= 4){
+                    amap.remove(polygons)//清除上次结果
+                    polygons = [];
+                    var bounds = feature.geometry.coordinates;
+                    if (bounds) {
+                        for (var i = 0, l = bounds.length; i < l; i++) {
+                            //生成行政区划polygon
+                            var polygon = new AMap.Polygon({
+                                path: bounds[i],
+                                fillOpacity: 0,
+                                fillColor: 'rgb(1,1,34)',
+                                strokeColor: '#2D61C7',
+                                strokeWeight: 4,
+                                bubble:true//事件穿透到地图
+                            });
+                            polygons.push(polygon);
+                        }
+                    }
+                    amap.add(polygons)
+                    amap.setFitView(polygons);//视口自适应
+                    if(feature.properties.name == '海南省'){
+                        amap.setZoomAndCenter(7,feature.properties.center)
+                    }
+                }else{
+                    amap.remove(polygons)//清除上次结果
+                    amap.setZoomAndCenter(4,[105.4976, 38.1697])
+                }
+            });
+
+            //外部区域被点击
+            districtExplorer.on('outsideClick', function(e) {
+                console.log('区域外点击');
+            });
+
+            function renderAreaNode(areaNode) {
+
+                //绘制子区域
+                districtExplorer.renderSubFeatures(areaNode, function(feature, i) {
+
+                    // var fillColor = colors[i % colors.length];
+                    // var strokeColor = colors[colors.length - 1 - i % colors.length];
+                    return {
+                        cursor: 'pointer',
+                        bubble: true,
+                        strokeColor: '#2D61C7', //线颜色
+                        strokeOpacity: 1, //线透明度
+                        strokeWeight: 1.5, //线宽
+                        fillColor: '#010122',//填充色
+                        fillOpacity: 1, //填充透明度
+                    };
+                }); 
+
+                //绘制父区域
+                districtExplorer.renderParentFeature(areaNode, {
                     cursor: 'pointer',
                     bubble: true,
-                    strokeColor: strokeColor, //线颜色
+                    strokeColor: '#2D61C7', //线颜色
                     strokeOpacity: 1, //线透明度
-                    strokeWeight: 1, //线宽
-                    fillColor: fillColor,//填充色
-                    fillOpacity: 0.35, //填充透明度
-                };
-            }); 
+                    strokeWeight: 2, //线宽
+                    // fillColor: '#010122', //填充色
+                    fillOpacity: 0, //填充透明度
+                });
+            }
 
-            //绘制父区域
-            districtExplorer.renderParentFeature(areaNode, {
-                cursor: 'pointer',
-                bubble: true,
-                strokeColor: 'black', //线颜色
-                strokeOpacity: 1, //线透明度
-                strokeWeight: 1, //线宽
-                fillColor: 'gray', //填充色
-                fillOpacity: 0.2, //填充透明度
+            var adcodes = 100000
+
+            districtExplorer.loadAreaNode(adcodes, function(error, areaNodes) {
+                //清除已有的绘制内容
+                // districtExplorer.clearFeaturePolygons();
+                renderAreaNode(areaNodes);
             });
-        }
-
-        var adcodes = [
-            100000
-        ];
-
-        districtExplorer.loadMultiAreaNodes(adcodes, function(error, areaNodes) {
-            //设置定位节点，支持鼠标位置识别
-            //注意节点的顺序，前面的高优先级
-            districtExplorer.setAreaNodesForLocating(areaNodes);
-            //清除已有的绘制内容
-            districtExplorer.clearFeaturePolygons();
-
-            renderAreaNode(areaNodes[0]);
-
-            //更新地图视野
-            // amap.setFitView();
         });
-    });
-    /*var districts = [
-        { 'name': '北京市', 'center': '116.407394,39.904211' },
-        { 'name': '天津市', 'center': '117.200983,39.084158' },
-        { 'name': '河北省', 'center': '114.530235,38.037433' },
-        { 'name': '山西省', 'center': '112.562678,37.873499' },
-        { 'name': '内蒙古自治区', 'center': '111.76629,40.81739' },
-        { 'name': '辽宁省', 'center': '123.431382,41.836175' },
-        { 'name': '吉林省', 'center': '125.32568,43.897016' },
-        { 'name': '黑龙江省', 'center': '126.661665,45.742366' },
-        { 'name': '上海市', 'center': '121.473662,31.230372' },
-        { 'name': '江苏省', 'center': '118.762765,32.060875' },
-        { 'name': '浙江省', 'center': '120.152585,30.266597' },
-        { 'name': '安徽省', 'center': '117.329949,31.733806' },
-        { 'name': '福建省', 'center': '119.295143,26.100779' },
-        { 'name': '江西省', 'center': '115.81635,28.63666' },
-        { 'name': '山东省', 'center': '117.019915,36.671156' },
-        { 'name': '河南省', 'center': '113.753394,34.765869' },
-        { 'name': '湖北省', 'center': '114.341745,30.546557' },
-        { 'name': '湖南省', 'center': '112.9836,28.112743' },
-        { 'name': '广东省', 'center': '113.26641,23.132324' },
-        { 'name': '广西壮族自治区', 'center': '108.327546,22.815478' },
-        { 'name': '海南省', 'center': '110.349228,20.017377' },
-        { 'name': '重庆市', 'center': '106.551643,29.562849' },
-        { 'name': '四川省', 'center': '104.075809,30.651239' },
-        { 'name': '贵州省', 'center': '106.70546,26.600055' },
-        { 'name': '云南省', 'center': '102.710002,25.045806' },
-        { 'name': '西藏自治区', 'center': '91.117525,29.647535' },
-        { 'name': '陕西省', 'center': '108.954347,34.265502' },
-        { 'name': '甘肃省', 'center': '103.826447,36.05956' },
-        { 'name': '青海省', 'center': '101.780268,36.620939' },
-        { 'name': '宁夏回族自治区', 'center': '106.259126,38.472641' },
-        { 'name': '新疆维吾尔自治区', 'center': '87.627704,43.793026' },
-        { 'name': '台湾省', 'center': '121.509062,25.044332' },
-        { 'name': '香港特别行政区', 'center': '114.171203,22.277468' },
-        { 'name': '澳门特别行政区', 'center': '113.543028,22.186835' }
-    ];
-    
-    // 传入 AMap.Map 实例
-     var map = Loca.create(amap);
-    var layer = Loca.visualLayer({
-        container: map,
-        // 指定数据类型
-        type: 'point',
-        // 展示形状
-        shape: 'circle'
-    });
-    layer.setData(capitals, {
-        // 指定经纬度所在字段
-        lnglat: 'center'
-    });
-    layer.setOptions({
-        style: {
-            // 圆形半径
-            radius: 5,
-            // 填充颜色
-            color: '#f3ad6a',
-            // 描边颜色
-            borderColor: '#5a6aff',
-            // 描边宽度，单位像素
-            borderWidth: 1,
-            // 透明度
-            opacity: 0.9
+    }
+    /* 
+    执行逻辑
+        1. 根据生成所有的显示DOM: dom
+        2. 根据arr长度计算出单次展示的数据长度: soliceNum
+        3. 根据soliceNum截取dom
+        4. 显示截取后的DOM
+        5. 
+     */
+    function generateDom(arr) {
+        //单次展示的数据长度
+        //每个元素
+        var soliceNum = Math.ceil(arr.length/(1*60*1000/3200));
+        var dom = [];
+        var delayTime = 400
+        //构建tips标签
+        arr.forEach(function(item, index) {
+            var str = Object.keys(item)[0]+':'+item[Object.keys(item)[0]]
+            dom[index] = item.center+',<div class="mapTip foamA" style="width:'+Math.ceil(str.length/11*120)+'px">'+ Object.keys(item)[0]+':'+item[Object.keys(item)[0]] +'</div>';
+        })
+        clearInterval(window.si);
+        animation(dom,soliceNum,delayTime)
+        window.si = setInterval(()=>{
+            console.log('dom----',dom.length)
+            animation(dom,soliceNum,delayTime)
+        }, soliceNum * delayTime);
+        
+        document.onvisibilitychange = function() {
+            if(document.visibilityState=="visible"){
+                window.si = setInterval(()=>{
+                    animation(dom,soliceNum,delayTime)
+                }, soliceNum * delayTime);
+            }else{
+                clearInterval(window.si);
+            }
         }
-    });
-    layer.on('mouseover', function (e) {
-        console.log(111)
-    })
-    // 执行绘制
-    layer.render(); */
+    }
+    function animation(dom,soliceNum,delayTime) {
+        if ( !dom.length ) {
+            clearInterval(window.si);
+            return
+        }
+        //清除执行过的成员,返回剩余数组成员
+        var newDom = dom.splice(0, soliceNum);
+        //获取需要执行的成员
+        var oldDom = dom.slice(0, soliceNum)
+        dom = newDom
+        oldDom.forEach(function(item, index) {
+            setTimeout(() => {
+                var msg = item.split(',')
+                var mk = new AMap.Marker({
+                    position: [msg[0], msg[1]],
+                    // 将 html 传给 content
+                    content: msg[2],
+                    // 以 icon 的 [center bottom] 为原点
+                    offset: new AMap.Pixel(-60, -20),
+                    bubble:true,
+                });
+                amap.add(mk);
+                setTimeout(() => {
+                    amap.remove(mk);//清除
+                }, 3200);
+            }, delayTime * (index + Math.random() - .5), item, index);
+        })
+    }
     </script>
 </body>
 
