@@ -1,0 +1,137 @@
+<!-- 重点：setSvgShape -->
+<!doctype html>
+<html lang="zh-CN">
+
+<head>
+    <!-- 原始地址：//webapi.amap.com/ui/1.0/ui/overlay/SvgMarker/examples/shape-adjust.html -->
+    <base href="//webapi.amap.com/ui/1.0/ui/overlay/SvgMarker/examples/" />
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">
+    <title>调节Shape属性</title>
+    <style>
+    html,
+    body,
+    #container {
+        width: 100%;
+        height: 100%;
+        margin: 0px;
+    }
+    </style>
+</head>
+
+<body>
+    <div id="container"></div>
+    <!-- https://workshop.chromeexperiments.com/examples/gui/ -->
+    <script src="../../../../plug/ext/dat.gui.min.js?v=1.0.11"></script>
+    <script type="text/javascript" src='//webapi.amap.com/maps?v=1.4.11&key=您申请的key值'></script>
+    <!-- UI组件库 1.0 -->
+    <script src="//webapi.amap.com/ui/1.0/main.js?v=1.0.11"></script>
+    <script type="text/javascript">
+    //创建地图
+    var map = new AMap.Map('container', {
+        zoom: 4
+    });
+
+    AMapUI.loadUI(['overlay/SvgMarker'], function(SvgMarker) {
+
+        if (!SvgMarker.supportSvg) {
+            //当前环境并不支持SVG，此时SvgMarker会回退到父类，即SimpleMarker
+            alert('当前环境不支持SVG');
+        }
+
+        var marker = new SvgMarker(
+            null, {
+                map: map,
+                position: map.getCenter(),
+                showPositionPoint: true
+            });
+
+        // var shapeNames = [
+        //     'WaterDrop',
+        //     'ShieldPin',
+        //     'SquarePin',
+        //     'TriangleFlagPin',
+        //     'RectangleFlagPin',
+        //     'FivePointsStar',
+        //     'Circle',
+        //     'IconFont'
+        // ];
+
+        function ParamsCls() {
+
+            this.shape = 'Circle';
+
+            this.width = 120;
+
+            this.height = 100;
+
+            this.keepAspectRatio = true;
+
+            this.fillColor = 'rgb(255,105,0)';
+
+            this.strokeColor = '#000000';
+
+            this.strokeWidth = 0;
+        };
+
+        var controlParams = new ParamsCls();
+
+        function getSvgShape() {
+
+            return new SvgMarker.Shape[controlParams.shape]({
+                width: controlParams.width,
+                height: controlParams.keepAspectRatio ? false : controlParams.height,
+                fillColor: controlParams.fillColor,
+                strokeColor: controlParams.strokeColor,
+                strokeWidth: controlParams.strokeWidth
+            });
+        }
+
+         //图标水纹动画
+        window.setInterval(function(){
+        	
+        	if(controlParams.strokeWidth>0){
+        		controlParams.strokeWidth=controlParams.strokeWidth-1;
+        	}else{
+        		controlParams.strokeWidth=20;
+        	}
+        	updateShape();
+        },80);
+        function updateShape() {
+
+            heightControl.domElement.style.display = controlParams.keepAspectRatio ? 'none' : 'block';
+
+            var shape = getSvgShape();
+
+            marker.setSvgShape(shape);
+        }
+
+         var gui = new dat.GUI();
+
+        //形状类型
+        gui.add(controlParams, 'shape', ['Circle']).onChange(updateShape);
+
+        /* //宽度
+        gui.add(controlParams, 'width', 1, 200).step(1).onChange(updateShape);
+
+        //高度
+        var heightControl = gui.add(controlParams, 'height', 1, 200).step(1).onChange(updateShape);
+
+        //宽高比
+        gui.add(controlParams, 'keepAspectRatio').onChange(updateShape);
+
+        //描边宽度
+        gui.add(controlParams, 'strokeWidth', 0, 20).step(1).onChange(updateShape);
+
+        //填充色
+        gui.addColor(controlParams, 'fillColor').onChange(updateShape);
+
+        //描边色
+        gui.addColor(controlParams, 'strokeColor').onChange(updateShape);  */
+
+        updateShape();
+
+    });
+    </script>
+</body>
+</html>
